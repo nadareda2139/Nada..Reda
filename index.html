@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nada Reda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --primary-color: #1b4332; --accent-color: #d4af37; --bg-color: #f8f9fa; --card-bg: #ffffff; --text-color: #2d3436; }
+        .dark-mode { --bg-color: #0b130b; --card-bg: #1a2e1a; --text-color: #e0e0e0; --primary-color: #40916c; }
+        
+        body { font-family: 'Amiri', serif; background-color: var(--bg-color); margin: 0; color: var(--text-color); transition: 0.3s; overflow-x: hidden; width: 100%; }
+
+        /* أيقونة الثلاث نقاط */
+        .menu-dots {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .menu-dots:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* نافذة المعلومات المنبثقة */
+        #info-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .modal-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            border-top: 5px solid var(--accent-color);
+            position: relative;
+        }
+        .modal-box h3 { color: var(--primary-color); font-family: 'Aref Ruqaa'; margin-bottom: 20px; font-size: 1.5rem; }
+        .info-item { margin: 15px 0; font-size: 1.1rem; border-bottom: 1px dashed #ddd; padding-bottom: 10px; color: var(--text-color); }
+        .close-modal {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #bday-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(27, 67, 50, 0.98), rgba(11, 19, 11, 0.98));
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        #bday-overlay h1 { font-family: 'Aref Ruqaa'; font-size: clamp(2rem, 8vw, 4rem); color: var(--accent-color); margin: 0 0 20px 0; }
+        #bday-overlay p { font-size: clamp(1.1rem, 4vw, 1.8rem); max-width: 700px; line-height: 1.6; margin: 0 auto; }
+        .close-bday { margin-top: 40px; padding: 15px 50px; background: var(--accent-color); color: var(--primary-color); border: none; border-radius: 50px; font-size: 1.3rem; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        header { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center; padding: 60px 15px 40px; text-align: center; border-bottom: 6px solid var(--accent-color); position: relative; }
+        
+        .countdown-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        .countdown-box { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 12px; min-width: 70px; border: 1px solid var(--accent-color); flex: 1; max-width: 90px; }
+        .countdown-num { display: block; font-size: 1.5rem; font-weight: bold; color: var(--accent-color); }
+        
+        /* جعل الكلمات تحت الأرقام باللون الأبيض */
+        .countdown-box span:last-child { color: #ffffff; font-weight: bold; display: block; margin-top: 5px; }
+        
+        .container { max-width: 850px; margin: -30px auto 50px; padding: 0 15px; position: relative; z-index: 10; }
+        .card { background: var(--card-bg); border-radius: 25px; padding: 25px; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 5px solid var(--primary-color); text-align: center; }
+        
+        #surah-content { font-size: 1.3rem; line-height: 2; text-align: justify; background: #fffaf0; padding: 15px; border-radius: 15px; color: #333; max-height: 350px; overflow-y: auto; }
+        
+        .prayer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 15px; }
+        .prayer-box { background: rgba(0,0,0,0.03); padding: 12px; border-radius: 15px; border: 1px solid #eee; }
+        
+        .tasbeeh-display { font-size: clamp(3rem, 15vw, 5rem); font-weight: bold; color: var(--primary-color); font-family: 'Aref Ruqaa'; text-shadow: 2px 2px 0px var(--accent-color); margin: 10px 0; }
+        .main-tasbeeh-btn { width: 140px; height: 140px; border-radius: 50%; background: var(--primary-color); border: 6px solid var(--accent-color); color: white; font-size: 1.6rem; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center; user-select: none; }
+        
+        .khatma-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 20px; }
+        .surah-item { padding: 8px 4px; background: #f1f1f1; border-radius: 8px; font-size: 0.85rem; cursor: pointer; border: 1px solid #ddd; color: #000; }
+        .surah-item.completed { background: var(--primary-color) !important; color: white !important; }
+
+        .controls { position: fixed; bottom: 20px; left: 20px; z-index: 1000; }
+        .btn-mode { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        
+        @media (max-width: 600px) { .card { padding: 20px 15px; } }
+    </style>
+</head>
+<body>
+
+<div class="menu-dots" onclick="openModal()">&#8942;</div>
+
+<div id="info-modal">
+    <div class="modal-box">
+        <h3>معلومات الموقع</h3>
+        <div class="info-item">👤 الصانع: <b>HUSSAM AYOB </b></div>
+        <div class="info-item">🕒 مدة الصنع: <b> 15يوم</b></div>
+        <div class="info-item">📅 تاريخ الانتهاء: <b>19 مارس 2026</b></div>
+        <button class="close-modal" onclick="closeModal()">إغلاق</button>
+    </div>
+</div>
+
+<div id="bday-overlay">
+    <div style="padding: 20px;">
+        <h1>  كل سنه وانتِ طيبه Nada ! ✨</h1>
+        <p>كل عام وأنتِ بخير و إلى الله أقرب، وعلى طاعته أدوم.. اسأل الله أن يبارك في عمرك ويحقق لكِ كل ما تتمنين في عامكِ الجديد. جعل الله أيامكِ كلها سعادة . 🎂🎈</p>
+        <button class="close-bday" onclick="closeBday()">اضغطي هنا للدخول للموقع  ✨</button>
+    </div>
+</div>
+
+<div class="controls"><button class="btn-mode" onclick="document.body.classList.toggle('dark-mode')">Dark Mode🌙</button></div>
+
+<header>
+    <h1 style="font-family:'Aref Ruqaa'; font-size: clamp(2rem, 7vw, 3.5rem); margin: 0;">Nada Reda</h1>
+    <div id="weather-header" style="margin-top:15px; font-size: 1.1rem; background: rgba(27,67,50,0.8); padding: 5px 20px; border-radius: 30px; display: inline-block; color: white;">جاري جلب الطقس...</div>
+    
+    <div id="timer-section">
+        <p style="margin-top:20px; font-size: 1rem; color: var(--accent-color);">الوقت المتبقي ليوم ميلادكِ السعيد:</p>
+        <div class="countdown-container">
+            <div class="countdown-box"><span id="days" class="countdown-num">00</span><span>يوم</span></div>
+            <div class="countdown-box"><span id="hours" class="countdown-num">00</span><span>ساعة</span></div>
+            <div class="countdown-box"><span id="minutes" class="countdown-num">00</span><span>دقيقة</span></div>
+            <div class="countdown-box"><span id="seconds" class="countdown-num">00</span><span>ثانية</span></div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <section class="card">
+        <h2 style="font-family:'Aref Ruqaa'; color:var(--primary-color);">📖 المصحف الشريف</h2>
+        <select id="surahSelect" onchange="loadSurah()" style="width: 100%; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-family: 'Amiri';"></select>
+        <div id="surah-content">تحميل...</div>
+    </section>
+
+    <section class="card">
+        <h2 style="font-family:'Aref Ruqaa'; color:var(--primary-color);">🕌 مواقيت الصلاة</h2>
+        <div class="prayer-grid" id="prayer-times">تحميل...</div>
+    </section>
+
+    <section class="card">
+        <h2 style="font-family:'Aref Ruqaa'; color:var(--primary-color);">📿 التسبيح</h2>
+        <input type="text" id="dhikr-input" oninput="saveDhikr()" style="width: 90%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-color); text-align: center; font-size: 1.1rem;" placeholder="اكتبي الذكر هنا">
+        <div class="tasbeeh-display" id="count-display">0</div>
+        <button class="main-tasbeeh-btn" onclick="increment()">سبّحي</button>
+        <button class="reset-btn" onclick="resetCounter()" style="border: 2px solid #e74c3c; background: transparent; color: #e74c3c; padding: 5px 20px; border-radius: 10px; cursor: pointer;">تصفير</button>
+    </section>
+
+    <section class="card">
+        <h2 style="font-family:'Aref Ruqaa'; color:var(--primary-color);">🏆 سجل الختمة</h2>
+        <div class="khatma-grid" id="khatma-grid"></div>
+    </section>
+
+    <footer style="color: var(--text-color); margin-bottom: 20px;"><p>صنع بواسطه <b>HUSSAM AYOUB</b></p></footer>
+</div>
+
+<script>
+    function openModal() { document.getElementById('info-modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('info-modal').style.display = 'none'; }
+
+    const surahNames = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
+    let khatmaProgress = JSON.parse(localStorage.getItem('nada_khatma')) || [];
+    const bdayDate = new Date("March 21, 2026 00:00:00").getTime();
+    let celebrated = false;
+
+    function triggerCelebration() {
+        if (celebrated) return;
+        celebrated = true;
+        document.getElementById('bday-overlay').style.display = 'flex';
+        var end = Date.now() + (15 * 1000);
+        (function frame() {
+            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+
+    function closeBday() {
+        document.getElementById('bday-overlay').style.display = 'none';
+        document.getElementById('timer-section').innerHTML = "<h2 style='color:var(--accent-color); margin-top:20px;'>كل عام وأنتِ بخير يا ندى! 🎉</h2>";
+    }
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const diff = bdayDate - now;
+        if (diff <= 0) { triggerCelebration(); return; }
+        document.getElementById('days').innerText = String(Math.floor(diff / 86400000)).padStart(2, '0');
+        document.getElementById('hours').innerText = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    }
+
+    function saveDhikr() { localStorage.setItem('nada_saved_dhikr', document.getElementById('dhikr-input').value); }
+    function loadDhikr() { document.getElementById('dhikr-input').value = localStorage.getItem('nada_saved_dhikr') || ""; }
+
+    function increment() { 
+        let c = (parseInt(localStorage.getItem('nada_count')) || 0) + 1;
+        document.getElementById('count-display').innerText = c;
+        localStorage.setItem('nada_count', c);
+    }
+    
+    function resetCounter() { 
+        localStorage.setItem('nada_count', 0);
+        document.getElementById('count-display').innerText = 0;
+    }
+
+    function initKhatma() {
+        const grid = document.getElementById('khatma-grid'); grid.innerHTML = '';
+        surahNames.forEach((name, i) => {
+            const div = document.createElement('div');
+            div.className = `surah-item ${khatmaProgress.includes(i) ? 'completed' : ''}`;
+            div.innerText = name;
+            div.onclick = () => {
+                if(khatmaProgress.includes(i)) khatmaProgress = khatmaProgress.filter(x => x!==i);
+                else khatmaProgress.push(i);
+                localStorage.setItem('nada_khatma', JSON.stringify(khatmaProgress));
+                initKhatma();
+            };
+            grid.appendChild(div);
+        });
+    }
+
+    async function fetchData() {
+        try {
+            // مواقيت الصلاة
+            const pRes = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Giza&country=Egypt&method=5');
+            const pData = await pRes.json();
+            const t = pData.data.timings;
+            const formatTime = (time) => {
+                let [h, m] = time.split(':'); h = parseInt(h);
+                return (h % 12 || 12) + ":" + m + (h >= 12 ? ' م' : ' ص');
+            };
+            document.getElementById('prayer-times').innerHTML = `
+                <div class="prayer-box"><b>الفجر</b><br>${formatTime(t.Fajr)}</div>
+                <div class="prayer-box"><b>الظهر</b><br>${formatTime(t.Dhuhr)}</div>
+                <div class="prayer-box"><b>العصر</b><br>${formatTime(t.Asr)}</div>
+                <div class="prayer-box"><b>المغرب</b><br>${formatTime(t.Maghrib)}</div>
+                <div class="prayer-box"><b>العشاء</b><br>${formatTime(t.Isha)}</div>`;
+            
+            // الطقس - تم تحديث الرابط لضمان الجلب
+            const wRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=30.01&longitude=31.21&current_weather=true');
+            if (wRes.ok) {
+                const wData = await wRes.json();
+                document.getElementById('weather-header').innerText = `🌡️ الجيزة: ${Math.round(wData.current_weather.temperature)}°C`;
+            }
+        } catch (e) {
+            document.getElementById('weather-header').innerText = "🌡️ الجيزة: 22°C"; // قيمة افتراضية في حال تعطل الـ API
+        }
+    }
+
+    const sel = document.getElementById('surahSelect');
+    surahNames.forEach((n, i) => sel.add(new Option(n, i + 1)));
+    async function loadSurah() {
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${sel.value || 1}`);
+            const data = await res.json();
+            document.getElementById('surah-content').innerText = data.data.ayahs.map(a => a.text + ` (${a.numberInSurah})`).join(" ");
+        } catch(e) { document.getElementById('surah-content').innerText = "حدث خطأ في تحميل السورة."; }
+    }
+
+    window.onload = () => { 
+        fetchData(); initKhatma(); loadDhikr();
+        document.getElementById('count-display').innerText = localStorage.getItem('nada_count') || 0;
+        setInterval(updateCountdown, 1000); loadSurah(); 
+    };
+</script>
+</body>
+</html>
